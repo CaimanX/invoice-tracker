@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Add Expense – InvoiceTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Add New Expense</h1>
+    <a href="{{ url_for('expenses') }}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="{{ url_for('add_expense') }}">
+
+        <div class="form-group">
+            <label for="title">Expense Title <span class="required">*</span></label>
+            <input type="text" id="title" name="title"
+                   placeholder="e.g. Monthly hosting fee"
+                   required class="form-input" />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="amount">Amount ($) <span class="required">*</span></label>
+                <input type="number" id="amount" name="amount"
+                       min="0.01" step="0.01" placeholder="0.00"
+                       required class="form-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date <span class="required">*</span></label>
+                <input type="date" id="date" name="date" required class="form-input" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category <span class="required">*</span></label>
+            <select id="category" name="category" required class="form-input"
+                    onchange="toggleCustomCategory(this.value)">
+                <option value="">— Select a category —</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+                <option value="Other">Other (custom)</option>
+            </select>
+        </div>
+
+        <!-- Custom category input – shown only when "Other" is selected -->
+        <div class="form-group" id="customCatGroup" style="display:none;">
+            <label for="custom_category">Custom Category</label>
+            <input type="text" id="custom_category" name="custom_category"
+                   placeholder="Enter your category name"
+                   class="form-input" />
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes <span class="form-hint-inline">(optional)</span></label>
+            <textarea id="notes" name="notes" rows="2"
+                      placeholder="Any extra details about this expense…"
+                      class="form-input"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Expense</button>
+            <a href="{{ url_for('expenses') }}" class="btn btn-outline">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+function toggleCustomCategory(value) {
+    document.getElementById("customCatGroup").style.display =
+        value === "Other" ? "block" : "none";
+}
+</script>
+{% endblock %}

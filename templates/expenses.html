@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Expenses – InvoiceTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Expenses</h1>
+    <a href="{{ url_for('add_expense') }}" class="btn btn-primary">+ Add Expense</a>
+</div>
+
+{% if expenses %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exp in expenses %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <strong>{{ exp.title }}</strong>
+                    {% if exp.notes %}
+                        <span class="notes-hint" title="{{ exp.notes }}">📝</span>
+                    {% endif %}
+                </td>
+                <td><span class="category-tag">{{ exp.category }}</span></td>
+                <td>${{ "%.2f"|format(exp.amount) }}</td>
+                <td>{{ exp.date }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_expense', expense_id=exp.id) }}"
+                          onsubmit="return confirm('Delete this expense?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">💸</div>
+    <p>No expenses recorded yet. Track your first expense to stay on top of your costs.</p>
+    <a href="{{ url_for('add_expense') }}" class="btn btn-primary">Add Your First Expense</a>
+</div>
+{% endif %}
+
+{% endblock %}

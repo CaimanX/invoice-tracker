@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Customers – InvoiceTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Customers</h1>
+    <a href="{{ url_for('add_customer') }}" class="btn btn-primary">+ Add Customer</a>
+</div>
+
+{% if customers %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Total Business</th>
+                <th>Pending</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in customers %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <strong>{{ c.name }}</strong>
+                    {% if c.is_risky %}
+                        <span class="risky-tag" title="{{ c.overdue_count }} overdue invoices">⚠️ Risky</span>
+                    {% endif %}
+                </td>
+                <td>{{ c.email or '—' }}</td>
+                <td>{{ c.phone or '—' }}</td>
+                <td>${{ "%.2f"|format(c.total_biz) }}</td>
+                <td>
+                    {% if c.pending > 0 %}
+                        <span class="pending-amount">${{ "%.2f"|format(c.pending) }}</span>
+                    {% else %}
+                        <span class="text-muted">$0.00</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_customer', customer_id=c.id) }}"
+                          onsubmit="return confirm('Delete {{ c.name }}? Their invoices will also be removed.')">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">👤</div>
+    <p>No customers added yet. Add a customer to get started.</p>
+    <a href="{{ url_for('add_customer') }}" class="btn btn-primary">Add Your First Customer</a>
+</div>
+{% endif %}
+
+{% endblock %}

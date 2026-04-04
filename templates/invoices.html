@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Invoices – InvoiceTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Invoices</h1>
+    <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">+ New Invoice</a>
+</div>
+
+{% if invoices %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr class="{{ 'row-overdue' if inv.eff_status == 'overdue' }}">
+                <td><span class="inv-num">{{ inv.invoice_num or '—' }}</span></td>
+                <td><strong>{{ inv.customer_name }}</strong></td>
+                <td>
+                    {{ inv.description }}
+                    {% if inv.notes %}
+                        <span class="notes-hint" title="{{ inv.notes }}">📝</span>
+                    {% endif %}
+                </td>
+                <td>${{ "%.2f"|format(inv.amount) }}</td>
+                <td>{{ inv.date }}</td>
+                <td>
+                    {% if inv.due_date %}
+                        <span class="{{ 'text-danger' if inv.eff_status == 'overdue' }}">
+                            {{ inv.due_date }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge badge-{{ inv.eff_status }}">
+                        {{ inv.eff_status|capitalize }}
+                    </span>
+                </td>
+                <td class="actions-cell">
+                    <form method="POST" action="{{ url_for('toggle_invoice_status', invoice_id=inv.id) }}"
+                          style="display:inline;">
+                        <button type="submit"
+                                class="btn btn-sm {{ 'btn-outline' if inv.eff_status == 'paid' else 'btn-success' }}">
+                            {{ 'Mark Unpaid' if inv.eff_status == 'paid' else 'Mark Paid' }}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('delete_invoice', invoice_id=inv.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('Delete this invoice?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">🧾</div>
+    <p>No invoices yet. Create your first invoice to start tracking your income.</p>
+    <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">Create Your First Invoice</a>
+</div>
+{% endif %}
+
+{% endblock %}

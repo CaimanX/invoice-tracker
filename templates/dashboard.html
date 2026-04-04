@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – InvoiceTracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Your financial overview at a glance</p>
+    </div>
+</div>
+
+<!-- ── Row 1: Financial Cards ── -->
+<div class="cards-grid">
+
+    <div class="card card-green">
+        <div class="card-icon">💰</div>
+        <div class="card-body">
+            <p class="card-label">Total Income</p>
+            <p class="card-value">${{ "%.2f"|format(total_income) }}</p>
+            <p class="card-sub">From paid invoices</p>
+        </div>
+    </div>
+
+    <div class="card card-red">
+        <div class="card-icon">💸</div>
+        <div class="card-body">
+            <p class="card-label">Total Expenses</p>
+            <p class="card-value">${{ "%.2f"|format(total_expenses) }}</p>
+            <p class="card-sub">All recorded expenses</p>
+        </div>
+    </div>
+
+    <div class="card card-yellow">
+        <div class="card-icon">⏳</div>
+        <div class="card-body">
+            <p class="card-label">Pending Payments</p>
+            <p class="card-value">${{ "%.2f"|format(pending_payments) }}</p>
+            <p class="card-sub">Unpaid invoices</p>
+        </div>
+    </div>
+
+    {% if overdue_amount > 0 %}
+    <div class="card card-overdue">
+        <div class="card-icon">🚨</div>
+        <div class="card-body">
+            <p class="card-label">Overdue Amount</p>
+            <p class="card-value">${{ "%.2f"|format(overdue_amount) }}</p>
+            <p class="card-sub">Past due date</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card {{ 'card-green' if profit >= 0 else 'card-red' }}">
+        <div class="card-icon">{{ '📈' if profit >= 0 else '📉' }}</div>
+        <div class="card-body">
+            <p class="card-label">Net Profit</p>
+            <p class="card-value">${{ "%.2f"|format(profit) }}</p>
+            <p class="card-sub">Income minus expenses</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Row 2: Count Cards ── -->
+<div class="cards-grid cards-grid-sm">
+    <div class="card card-neutral">
+        <div class="card-icon">👤</div>
+        <div class="card-body">
+            <p class="card-label">Total Customers</p>
+            <p class="card-value">{{ total_customers }}</p>
+            <p class="card-sub"><a href="{{ url_for('customers') }}">Manage customers →</a></p>
+        </div>
+    </div>
+    <div class="card card-neutral">
+        <div class="card-icon">🧾</div>
+        <div class="card-body">
+            <p class="card-label">Total Invoices</p>
+            <p class="card-value">{{ total_invoices }}</p>
+            <p class="card-sub"><a href="{{ url_for('invoices') }}">View all →</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- ── Quick Actions ── -->
+<div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+        <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">+ New Invoice</a>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-secondary">+ Add Expense</a>
+        <a href="{{ url_for('add_customer') }}" class="btn btn-outline">+ Add Customer</a>
+    </div>
+</div>
+
+<!-- ── Recent Invoices ── -->
+<section class="section">
+    <div class="section-header">
+        <h2>Recent Invoices</h2>
+        <a href="{{ url_for('invoices') }}" class="link-view-all">View All →</a>
+    </div>
+
+    {% if recent_invoices %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in recent_invoices %}
+                <tr class="{{ 'row-overdue' if inv.eff_status == 'overdue' }}">
+                    <td><span class="inv-num">{{ inv.invoice_num or '—' }}</span></td>
+                    <td>{{ inv.customer_name }}</td>
+                    <td>{{ inv.description }}</td>
+                    <td>${{ "%.2f"|format(inv.amount) }}</td>
+                    <td>{{ inv.due_date or '—' }}</td>
+                    <td><span class="badge badge-{{ inv.eff_status }}">{{ inv.eff_status|capitalize }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🧾</div>
+        <p>No invoices yet. Create your first invoice to start tracking your income.</p>
+        <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">Create Invoice</a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- ── Recent Expenses ── -->
+<section class="section">
+    <div class="section-header">
+        <h2>Recent Expenses</h2>
+        <a href="{{ url_for('expenses') }}" class="link-view-all">View All →</a>
+    </div>
+
+    {% if recent_expenses %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in recent_expenses %}
+                <tr>
+                    <td>{{ exp.title }}</td>
+                    <td><span class="category-tag">{{ exp.category }}</span></td>
+                    <td>${{ "%.2f"|format(exp.amount) }}</td>
+                    <td>{{ exp.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">💸</div>
+        <p>No expenses recorded yet.</p>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-secondary">Add Expense</a>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}
